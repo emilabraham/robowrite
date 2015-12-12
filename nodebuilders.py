@@ -10,6 +10,8 @@ class BasicBuilder(object):
 
 class SentenceBuilder(object):
     def __init__(self):
+        # A word is considered to end a sentence if it ends in one of . ? !
+        # optionally followed by some number of single or double quotes
         self.endPattern = re.compile('.*[.!?][\'"]*')
 
     def buildNode(self, word, last_node):

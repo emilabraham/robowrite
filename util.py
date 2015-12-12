@@ -1,3 +1,5 @@
+import random
+
 class DefaultDict(dict):
     """
     A DefaultDict is a simple wrapper around a dict with a default value set on
@@ -133,6 +135,17 @@ class Counter(dict):
         Returns a copy of the counter
         """
         return Counter(dict.copy(self))
+
+    def sample(self):
+        choice = random.random() * self.totalCount()
+
+        total = 0;
+        for k, v in self.iteritems():
+            total += v
+            
+            if choice < total:
+                return k
+        return None
 
     def __mul__(self, y ):
         """

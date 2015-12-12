@@ -2,13 +2,14 @@
 
 import argparse
 import nodebuilders
-from util import DefaultDict, Counter
+import random
+import util
 
 parser = argparse.ArgumentParser(description="An AI for writing prose \"similar\" to an input document.")
 parser.add_argument('data', type=argparse.FileType('r'), help="The file to read training data from")
 args = parser.parse_args()
 
-training_map = DefaultDict(Counter)
+training_map = util.DefaultDict(util.Counter)
 nodebuilder = nodebuilders.SentenceBuilder()
 
 last_node = None
@@ -19,6 +20,23 @@ for line in args.data:
             training_map[last_node][node] += 1
         last_node = node
 
-for k in training_map.keys():
-    if k[2]:
-        print k
+for tran in training_map.values():
+    tran.normalize()
+
+start_nodes = [k for k in training_map if k[1]]
+
+word_count = 0
+current_node = random.choice(start_nodes)
+with open("out.txt", 'w') as out:
+    while True:
+        out.write(nodebuilder.getWord(current_node))
+        word_count += 1
+
+        if word_count > 1000 and current_node[2]:
+            break
+        out.write(' ')
+        current_node = training_map[current_node].sample()
+
+        if current_node is None:
+            print "Oh noes!"
+            exit()

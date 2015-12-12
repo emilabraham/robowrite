@@ -7,6 +7,7 @@ import util
 
 parser = argparse.ArgumentParser(description="An AI for writing prose \"similar\" to an input document.")
 parser.add_argument('data', type=argparse.FileType('r'), help="The file to read training data from")
+parser.add_argument('output',type=argparse.FileType('w'), help="The file to write the novel to")
 args = parser.parse_args()
 
 training_map = util.DefaultDict(util.Counter)
@@ -27,7 +28,7 @@ start_nodes = [k for k in training_map if k[1]]
 
 word_count = 0
 current_node = random.choice(start_nodes)
-with open("out.txt", 'w') as out:
+with args.output as out:
     while True:
         out.write(nodebuilder.getWord(current_node))
         word_count += 1

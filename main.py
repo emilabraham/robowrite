@@ -24,6 +24,7 @@ for line in args.data:
 for tran in training_map.values():
     tran.normalize()
 
+
 start_nodes = [k for k in training_map if k[1]]
 
 word_count = 0

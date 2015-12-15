@@ -20,11 +20,14 @@ parser.add_argument('-w', '--wrap-width', type=int, default=150, metavar="WW",
         help="The number of characters to wrap the text to. Single words longer than this may still go past this amount.")
 args = parser.parse_args()
 
-nodebuilder = nodebuilders.QuoteBuilder()
+builderType = nodebuilders.QuoteBuilder
 if args.imp:
-    training_map = cPickle.load(args.data)
+    loaded = cPickle.load(args.data)
+    training_map = loaded['training_map']
+    nb = builderType(loaded['metadata'])
 else:
     training_map = util.DefaultDict(util.Counter)
+    nb = builderType()
 
     not_title = re.compile('.*[a-z].*')
 
@@ -40,7 +43,7 @@ else:
             is_title = True
 
         for word in words:
-            node = nodebuilder.buildNode(word, last_node, blank_lines, is_title)
+            node = nb.buildNode(word, last_node, blank_lines, is_title)
             blank_lines = 0;
             if last_node is not None:
                 training_map[last_node][node] += 1
@@ -48,9 +51,11 @@ else:
 args.data.close()
 
 if args.export:
-    cPickle.dump(training_map, args.output, -1)
+    cPickle.dump({
+        'training_map': training_map,
+        'metadata': nb.metadata}, args.output, -1)
 else:
-    start_nodes = [k for k in training_map if k[1]]
+    start_nodes = [k for k in training_map if nb.getMetadata(k, 'startsSentence')]
 
     word_count = 0
     line_width = 0
@@ -60,14 +65,14 @@ else:
     trimQuotes = re.compile('[^\'"]+[\'"]*$')
 
     while True:
-        word = nodebuilder.getWord(current_node)
+        word = nb.getWord(current_node)
 
-        if in_quote and current_node[5]:
+        if in_quote and nb.getMetadata(current_node, 'quotesStarted'):
             trimmed = trimQuotes.search(word)
             word = trimmed.group() if trimmed else word
 
-        if current_node[3] > 0:
-            args.output.write('\n' + '\n'*current_node[3])
+        if nb.getMetadata(current_node, 'linesBefore') > 0:
+            args.output.write('\n' + '\n'*nb.getMetadata(current_node, 'linesBefore'))
             line_width = 0
         elif line_width > 0 and line_width+len(word)+1 < args.wrap_width:
             args.output.write(' ')
@@ -80,18 +85,18 @@ else:
         word_count += 1
         line_width += len(word)
 
-        if word_count > args.word_count and current_node[2]:
+        if word_count > args.word_count and nb.getMetadata(current_node, 'endsSentence'):
             break
 
-        if current_node[5]:
+        if nb.getMetadata(current_node, 'quotesStarted'):
             in_quote = True
 
-        if current_node[6]:
+        if nb.getMetadata(current_node, 'quotesEnded'):
             in_quote = False
 
 
         if in_quote:
-            possible_nodes = [n for n in training_map[current_node] if not n[5]]
+            possible_nodes = [n for n in training_map[current_node] if not nb.getMetadata(n, 'quotesStarted')]
 
             if not possible_nodes:
                 current_node = training_map[current_node].sample()

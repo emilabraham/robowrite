@@ -9,3 +9,4 @@ the source-text folder, and should also be available at the links below:
 
  - [_The Adventures of Sherlock Holmes_ by Arthur Conan Doyle](http://www.gutenberg.org/ebooks/1661)
  - [_White Fang_ by Jack London](http://www.gutenberg.org/ebooks/910)
+ - [_The Whitehouse Cookbook (1887)_ by F. L. Gillette and Hugo Ziemann](http://www.gutenberg.org/ebooks/13923)
